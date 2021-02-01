@@ -1,0 +1,6 @@
+apiVersion: v2
+name: web
+description: Web Component Chart
+type: application
+version: 0.1.0 # semver
+appVersion: develop # non semver

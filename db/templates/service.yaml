@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.environment }}-{{ .Values.component }}-svc
+  labels:
+    component: {{ .Values.environment }}-{{ .Values.component }}-svc
+spec:
+  type: ClusterIP
+  selector:
+    component: {{ .Values.environment }}-{{ .Values.component }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPor }}
+  ClusterIP: None

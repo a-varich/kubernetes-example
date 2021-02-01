@@ -1,0 +1,89 @@
+apіVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.environment }}-{{ .Values.component }}
+  labels:
+    component: {{ .Values.environment }}-{{ .Values.component }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      component: {{ .Values.environment }}-{{ .Values.component }}
+  template:
+    metadata:
+      labels:
+        component: {{ .Values.environment }}-{{ .Values.component }}
+    spec:
+      initContainers:
+      - name: init
+        image: {{ .Values.registry }}/core/{{ .Values.component }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        volumeMounts:
+          - mountPath: /tmp/{{ .Values.component }}/
+            name: {{ .Values.component }}-volume
+        command: ['sh', '-c', 'chown -R www-data:www-data /var/www/html/*; cp -rp /var/www/html/* /tmp/{{ .Values.component }}/; true;']
+      containers:
+      - name: {{ .Values.component }}-nginx
+        image: {{ .Values.registry }}/middleware/nginx:latest
+        ports:
+          - containerPort: {{ .Values.service.targetPort }}
+            name:  {{ .Values.component }}-nginx
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+        securityContext:
+            capabilities:
+              add:
+                - KILL
+                - NET_BIND_SERVICE
+                - SETGID
+                - SETUID
+              drop:
+                - ALL
+        volumeMounts:
+          - mountPath: /var/www/html
+            name: {{ .Values.component }}-volume
+      - name: {{ .Values.component }}
+        image: {{ .Values.registry }}/core/{{ .Values.component }}:{{ .Values.image.tag }}
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+        securityContext:
+            capabilities:
+              add:
+                - KILL
+                - SETGID
+                - SETUID
+              drop:
+                - ALL
+        livenessProbe:
+          httpGet:
+            path: /status
+            port: {{ .Values.service.port }}
+          initialDelaySeconds: 360
+          periodSeconds: 3
+        volumeMounts:
+          - mountPath: /var/www/html
+            name: {{ .Values.component }}-volume
+          - mountPath: /var/www/html/.env
+            name: env-{{ .Values.component }}
+            subPath: .env
+      restartPolicy: Always
+      imagePullSecrets:
+        - name: gcr-login
+      volumes:
+        - name: {{ .Values.component }}-volume
+          persistentVolumeClaim:
+            claimName: {{ .Values.component }}-claim
+        - name: env-{{ .Values.component }}
+          secret:
+            secretName: env-{{ .Values.component }}
+            defaultMode: 0400

@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.component }}-claim
+spec:
+  storageClassName: slow
+  volumeMode: Filesystem
+  volumeName: {{ .Values.component }}-pv
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 10G

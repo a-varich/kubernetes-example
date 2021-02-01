@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.environment }}-{{ .Values.component }}
+  labels:
+    component: {{ .Values.environment }}-{{ .Values.component }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      component: {{ .Values.environment }}-{{ .Values.component }}
+  serviceName: {{ .Values.environment }}-{{ .Values.component }}-svc
+  template:
+    metadata:
+      labels:
+        component: {{ .Values.environment }}-{{ .Values.component }}
+    spec:
+      containers:
+        - name: {{ .Values.component }}
+          image: {{ .Values.registry }}/core/{{ .Values.component }}:{{ .Values.image.tag }}
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "128Mi"
+              cpu: "200m"
+          securityContext:
+            capabilities:
+              add:
+                - ALL
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+              name: mysql
+      restartPolicy: Always
+      imagePullSecrets:
+        - name: gcr-login

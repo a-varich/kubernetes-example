@@ -1,0 +1,35 @@
+# {{ .Values. }}
+environment: example
+component: api
+
+service:
+  type: ClusterIP
+  port: 81 # service port
+  targetPort: 80 # nginx port
+
+replicaCount: 3
+
+registry: eu.gcr.io/example-project
+
+image:
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# .env file values
+mysql:
+  user: exampleuser
+  password: pass4exampleuser
+  host: example-db-svc.default
+  db: main
+
+redis:
+  host: 10.11.11.11
+
+web:
+  url: web.example.com
+
+api:
+  key: example
+  secret: 1234
+
+persistentDisk: example-api-pd
