@@ -13,7 +13,7 @@ registry: eu.gcr.io/example-project
 
 image:
   tag: latest
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 # .env file values
 mysql:
